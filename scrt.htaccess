@@ -1,0 +1,25 @@
+# Protection de base
+ServerSignature Off
+Options -Indexes
+
+# Protection contre les injections
+RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} base64_encode.*\(.*\) [OR]
+RewriteCond %{QUERY_STRING} (\<|%3C).*iframe.*(\>|%3E) [NC]
+RewriteRule ^(.*)$ - [F]
+
+# Protection des fichiers sensibles
+<FilesMatch "\.(env|log|htaccess)$">
+    Require all denied
+</FilesMatch>
+
+# Force HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Cache-Control
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options nosniff
+    Header set X-Frame-Options DENY
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
